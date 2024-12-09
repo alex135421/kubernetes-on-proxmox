@@ -1,0 +1,6 @@
+.env
+tmp
+.terraform*
+*.tfvars
+terraform/**/files/*.cfg
+terraform.tfstate*

@@ -1,0 +1,71 @@
+#cloud-config
+users:
+    - default
+    - name: kroot
+      primary_group: kroot
+      groups: users
+      lock_passwd: true
+      sudo: ALL=(ALL) NOPASSWD:ALL
+      ssh_authorized_keys:
+        - ${pub_ssh}
+    - name: root
+      lock_passwd: true
+
+hostname: ${host_name}
+
+bootcmd:
+  - swapoff -a
+  - sysctl -w net.ipv4.ip_forward=1
+  - echo "127.0.0.1 ${host_name}" >> /etc/hosts
+
+apt:
+  sources:
+    docker.list:
+      source: deb [arch=amd64] https://download.docker.com/linux/ubuntu $RELEASE stable
+      keyid: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+
+    kubernetes.list:
+      source: 'deb [signed-by=$KEY_FILE]  https://pkgs.k8s.io/core:/stable:/v1.31/deb/  /'
+      keyid: DE15B14486CD377B9E876E1A234654DA9A296436
+
+package_update: true
+package_upgrade: true
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+  - containerd.io
+  - kubelet
+  - kubeadm
+  - kubectl
+
+write_files:
+  - path: /etc/sysctl.d/kubernetes.conf
+    content: |
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.bridge.bridge-nf-call-iptables = 1
+      net.ipv4.ip_forward = 1
+
+  - path: /etc/modules-load.d/containerd.conf
+    content: |
+      overlay
+      br_netfilter
+
+runcmd:
+   - sudo sysctl --system
+   - sudo mkdir -p /etc/containerd
+   - sudo containerd config default | sudo tee /etc/containerd/config.toml
+   - sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+   - systemctl restart containerd
+   - systemctl enable containerd
+   - curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+   - echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+   - apt-mark hold kubelet kubeadm kubectl
+   - systemctl enable --now kubelet
+   - sleep ${sleep_time}
+   - rsync -a -e "ssh -i /home/${user}/.ssh/master_private -oStrictHostKeyChecking=no" ${master_user}@${master_ip}:/tmp/worker-join.sh /tmp/worker-join.sh
+   - sudo sed -i '1 i\#!/bin/bash' /tmp/worker-join.sh
+   - sudo chmod u+x /tmp/worker-join.sh
+   - sudo /tmp/worker-join.sh > /home/${user}/join.log
