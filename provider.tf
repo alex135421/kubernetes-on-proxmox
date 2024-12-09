@@ -14,6 +14,6 @@ terraform {
   required_version = ">= 1.0"
 }
 provider "proxmox" {
-  pm_api_url = "https://192.168.0.200:8006/api2/json"
+  pm_api_url = "https://*/api2/json"
 }
 

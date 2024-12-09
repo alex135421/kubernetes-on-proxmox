@@ -19,6 +19,8 @@ qemu-img resize *the-image*.img 20G
 
 - Since sensitive data passed down to `terraform.tfvars` , it's in the gitignore file and should be created when the git cloned.
 
+- Proxmox provider credentials should be added and proxmox url in providers should be changed. Based on terraform provider: https://registry.terraform.io/providers/Telmate/proxmox/latest/docs
+
 ## Variables
 
 - A vm map variable that will include all parameters to create the vms and copy the cloud init data
