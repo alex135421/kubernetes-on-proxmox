@@ -31,7 +31,7 @@ vm_map = {
     vm_name        = "vm name used for creation and hostname"
     vm_user        = "vm user"
     vm_storage     = "where to create vm"
-    vm_disk_size   = "50"
+    vm_disk_size   = "root disk size"
     vm_sockets     = "number of sockets"
     vm_cores       = "number of cores"
     vm_memory      = "memory size in MB"
@@ -44,7 +44,7 @@ vm_map = {
     ip_addr        = "ip for the vm"
     public_key     = "public key to connect to vm(used only by external file for example from ssh-keygen )"
     cloud_init_tpl = "the name of the cloud init template machine"
-    master_ip      = "master ip to direct the checks for availability"
+    master_id      = "master key from vm_map"
     sleep_time 	   = "worker sleep time waiting for master to be ready"
   }
 }
